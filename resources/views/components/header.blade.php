@@ -40,16 +40,37 @@
                     </div>
                 </div>
 
-                @if (Route::has('login'))
-                    <div class="space-x-4">
-                        @auth
-                            <a href="{{ url('/dashboard') }}" class="text-sm text-gray-700 hover:text-brand-green">Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="text-sm font-semibold text-gray-600 hover:text-brand-green">{{ __('Log in') }}</a>
-                            <a href="{{ route('register') }}" class="bg-brand-green hover:bg-green-800 text-white px-4 py-2 rounded-md text-sm font-medium transition">{{ __('Submit Manuscript') }}</a>
-                        @endauth
-                    </div>
+                  <!-- AUTHENTICATION LOGIC START -->
+    @if (Route::has('login'))
+        <div class="flex items-center gap-4">
+            @auth
+                <!-- 1. Check Role to show correct Dashboard link -->
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-brand-green border border-brand-green px-3 py-1 rounded hover:bg-brand-green hover:text-white transition">
+                        Admin Portal
+                    </a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="text-sm text-gray-700 hover:text-brand-green">
+                        Dashboard
+                    </a>
                 @endif
+
+                <!-- 2. Logout Button (Always visible if logged in) -->
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="text-sm font-semibold text-red-600 hover:text-red-800">
+                        {{ __('Logout') }}
+                    </button>
+                </form>
+
+            @else
+                <!-- Guest View -->
+                <a href="{{ route('login') }}" class="text-sm font-semibold text-gray-600 hover:text-brand-green">{{ __('Log in') }}</a>
+                <a href="{{ route('register') }}" class="bg-brand-green hover:bg-green-800 text-white px-4 py-2 rounded-md text-sm font-medium transition">{{ __('Submit Manuscript') }}</a>
+            @endauth
+        </div>
+    @endif
+    <!-- AUTHENTICATION LOGIC END -->
             </div>
         </div>
     </div>
