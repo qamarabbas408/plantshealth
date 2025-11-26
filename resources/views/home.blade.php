@@ -1,8 +1,13 @@
 <x-public-layout>
     
-    <!-- Hero Section -->
+   <!-- Hero Section -->
     <div class="relative bg-brand-green overflow-hidden">
-        <div class="absolute inset-0 opacity-20" style="background-image: url('https://images.unsplash.com/photo-1625246333195-5512a96d8a48?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center;"></div>
+        
+        <!-- Background Image replaced here -->
+        <div class="absolute inset-0 opacity-20" 
+             style="background-image: url('{{ asset('images/green-tea-hero-image.jpg') }}'); background-size: cover; background-position: center;">
+        </div>
+
         <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8 flex flex-col items-center text-center">
             <h1 class="text-4xl font-serif font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
                 {!! __('Modern Agriculture is <span class="text-amber-400 italic">Gold</span>') !!}
@@ -25,7 +30,7 @@
             <p class="mt-2 text-gray-600">Curated articles from our editors and scholars.</p>
         </div>
         <!-- Link to an archive page (we can build later) -->
-        <a href="#" class="text-brand-green font-semibold hover:text-green-800">{{ __('View all posts') }} &rarr;</a>
+        <a href="{{ route('posts.index') }}" class="text-brand-green font-semibold hover:text-green-800" class="text-brand-green font-semibold hover:text-green-800">{{ __('View all posts') }} &rarr;</a>
     </div>
 
     <div class="grid gap-10 md:grid-cols-3">
@@ -35,7 +40,7 @@
             <!-- LOGIC: Determine Image URL -->
             @php
                 if (!$post->image_path) {
-                    $imgSrc = 'https://placehold.co/400x300?text=No Image';
+                    $imgSrc = asset('images/placeholder-agri.jpg');
                 } elseif (Str::startsWith($post->image_path, 'http')) {
                     // It's an external URL (like from Seeding/Unsplash)
                     $imgSrc = $post->image_path;

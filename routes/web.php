@@ -4,7 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegisterController; // Don't forget to import this at top
 use App\Http\Controllers\PostController; // Don't forget to import this at top
+use App\Http\Controllers\ProfileController; // Don't forget to import this at top
+
 use App\Models\Post; 
+
 
 /*
 |--------------------------------------------------------------------------
@@ -81,6 +84,9 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
         
     })->name('dashboard');
+    // Profile Update Route
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
     Route::get('/new-story', [PostController::class, 'create'])->name('posts.create');
     Route::post('/new-story', [PostController::class, 'store'])->name('posts.store');
 
@@ -92,5 +98,5 @@ Route::middleware(['auth'])->group(function () {
 // The '@' is part of the static URL structure, {username} is the dynamic parameter
 Route::get('/@{username}/{slug}', [PostController::class, 'show'])->name('posts.show');
 
-
-
+// Blog Archive Route
+Route::get('/blog', [PostController::class, 'index'])->name('posts.index');

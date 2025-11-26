@@ -21,7 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-            'role', // Add this
+        'role',
+        'avatar',
+        'bio',
 
     ];
 
@@ -44,4 +46,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    // RELATIONSHIPS
+
+    // Add this method to link Users to Posts
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'user_id');
+    }
 }
