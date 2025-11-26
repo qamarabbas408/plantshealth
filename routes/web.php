@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegisterController; // Don't forget to import this at top
+use App\Http\Controllers\PostController; // Don't forget to import this at top
+use App\Models\Post; 
 
 /*
 |--------------------------------------------------------------------------
@@ -16,8 +18,16 @@ use App\Http\Controllers\RegisterController; // Don't forget to import this at t
 */
 
 Route::get('/', function () {
-    return view('home');
-});
+  $posts = Post::with(['author', 'tags']) 
+                ->where('is_published', true)
+                ->latest() 
+                ->take(3) 
+                ->get();
+
+    // return view('home');
+    return view('home', compact('posts'));
+
+})->name('home'); 
 
 Route::get('/lang/{locale}', function ($locale) {
     if (in_array($locale, ['en', 'es', 'fr','ur'])) {
@@ -71,5 +81,16 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
         
     })->name('dashboard');
+    Route::get('/new-story', [PostController::class, 'create'])->name('posts.create');
+    Route::post('/new-story', [PostController::class, 'store'])->name('posts.store');
+
+
 
 });
+
+// Route::get('/story/{slug}', [PostController::class, 'show'])->name('posts.show');
+// The '@' is part of the static URL structure, {username} is the dynamic parameter
+Route::get('/@{username}/{slug}', [PostController::class, 'show'])->name('posts.show');
+
+
+
