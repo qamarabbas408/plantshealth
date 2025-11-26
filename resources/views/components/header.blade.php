@@ -12,7 +12,7 @@
                 </div>
                 <!-- Desktop Nav -->
                 <div class="hidden sm:ms-10 sm:flex sm:space-x-8">
-                    <a href="#" class="border-brand-gold text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                    <a href="/" class="border-brand-gold text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                         {{ __('Home') }}
                     </a>
                     <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
@@ -25,20 +25,7 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- Language Switcher -->
-                <div class="relative group">
-                    <button class="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-brand-green">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        {{ strtoupper(app()->getLocale()) }}
-                    </button>
-                    <!-- Dropdown -->
-                    <div class="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 hidden group-hover:block border border-gray-100">
-                        <a href="{{ route('switchLang', 'en') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">English (EN)</a>
-                        <a href="{{ route('switchLang', 'es') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">Español (ES)</a>
-                        <a href="{{ route('switchLang', 'fr') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">Français (FR)</a>
-                        <a href="{{ route('switchLang', 'ur') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">اردو (UR)</a>
-                    </div>
-                </div>
+               
 
                   <!-- AUTHENTICATION LOGIC START -->
     @if (Route::has('login'))
@@ -71,6 +58,21 @@
         </div>
     @endif
     <!-- AUTHENTICATION LOGIC END -->
+
+     <!-- Language Switcher -->
+                <div class="relative group">
+                    <button class="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-brand-green">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {{ strtoupper(app()->getLocale()) }}
+                    </button>
+                    <!-- Dropdown -->
+                    <div class="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 hidden group-hover:block border border-gray-100">
+                        <a href="{{ route('switchLang', 'en') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">English (EN)</a>
+                        <a href="{{ route('switchLang', 'es') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">Español (ES)</a>
+                        <a href="{{ route('switchLang', 'fr') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">Français (FR)</a>
+                        <a href="{{ route('switchLang', 'ur') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-start">اردو (UR)</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
