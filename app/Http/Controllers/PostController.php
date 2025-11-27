@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage; 
 
 class PostController extends Controller
 {
@@ -190,5 +191,27 @@ class PostController extends Controller
         $message = $isPublished ? 'Story updated and published!' : 'Draft updated successfully.';
 
         return redirect()->route('dashboard')->with('success', $message);
+    }
+
+    public function destroy($id)
+    {
+        $post = Post::findOrFail($id);
+
+        // 1. Security Check: Only the author can delete
+        if (Auth::id() !== $post->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 2. Delete the Image from Storage (Cleanup)
+        if ($post->image_path) {
+            // We use the 'public' disk because that's where we stored it
+            Storage::disk('public')->delete($post->image_path);
+        }
+
+        // 3. Delete the Post
+        // Note: Database 'ON DELETE CASCADE' will automatically remove the related Comments and Tags
+        $post->delete();
+
+        return back()->with('success', 'Story deleted successfully.');
     }
 }

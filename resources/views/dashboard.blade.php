@@ -86,46 +86,50 @@
                                 @endif
                             </div>
 
-                            <div class="flex-1">
-                                <div class="flex justify-between items-start">
+                            <div class="flex justify-between items-start flex-1">
+                                <div class='flex flex-1 flex-col'>
                                     <h3 class="font-bold text-lg text-gray-900 leading-tight">
                                         @if ($post->is_published)
-                                            <!-- Published link (Read) -->
                                             <a href="{{ route('posts.show', ['username' => Str::slug($post->author->name), 'slug' => $post->slug]) }}"
-                                                class="hover:underline">
-                                                {{ $post->title }}
-                                            </a>
+                                                class="hover:underline">{{ $post->title }}</a>
                                         @else
-                                            <!-- Draft link (Edit) - UPDATE THIS PART -->
                                             <a href="{{ route('posts.edit', $post->id) }}"
-                                                class="hover:text-brand-green hover:underline">
-                                                {{ $post->title }} <span
-                                                    class="text-xs text-gray-400 ml-1">(Edit)</span>
-                                            </a>
+                                                class="hover:text-brand-green hover:underline">{{ $post->title }}
+                                                <span class="text-xs text-gray-400 ml-1">(Edit)</span></a>
                                         @endif
                                     </h3>
+                                    <p>
+                                        {{ $post->excerpt }}
+                                    </p>
 
-                                    <!-- Status Badge -->
-                                    @if (!$post->is_published)
-                                        <span
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                                            Draft
-                                        </span>
-                                    @else
-                                        <span
-                                            class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            Published
-                                        </span>
-                                    @endif
                                 </div>
 
-                                <p class="text-gray-500 text-sm mt-1 line-clamp-2">
-                                    {{ $post->excerpt ?? 'No description.' }}
-                                </p>
-                                <p class="text-gray-400 text-xs mt-3">
-                                    {{ $post->is_published ? 'Published on' : 'Created on' }}
-                                    {{ $post->created_at->format('M d, Y') }}
-                                </p>
+                                <div class="flex items-center gap-3">
+                                    <!-- Status Badge -->
+                                    <span
+                                        class="px-2 py-1 text-xs font-semibold rounded-full {{ $post->is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
+                                        {{ $post->is_published ? 'Published' : 'Draft' }}
+                                    </span>
+
+                                    <!-- DELETE BUTTON -->
+                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete this story? This cannot be undone.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <!-- DELETE BUTTON (Trigger) -->
+                                        <button type="button"
+                                            onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}')"
+                                            class="text-gray-400 hover:text-red-600 transition p-1"
+                                            title="Delete Story">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -231,6 +235,51 @@
             </div>
         </div>
     </div>
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="delete-modal" class="fixed inset-0 z-[60] hidden">
+
+        <!-- Backdrop (Dark Overlay) -->
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity"
+            onclick="closeDeleteModal()"></div>
+
+        <!-- Modal Content -->
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-100 text-center">
+
+            <!-- Warning Icon -->
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Delete Story?</h3>
+
+            <p class="text-gray-500 mb-8 text-sm leading-relaxed">
+                Are you sure you want to delete this? All comments and data associated with this story will be
+                permanently removed.
+            </p>
+
+            <div class="flex justify-center gap-3">
+                <!-- Cancel Button -->
+                <button type="button" onclick="closeDeleteModal()"
+                    class="px-5 py-2.5 rounded-full text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium transition text-sm">
+                    Cancel
+                </button>
+
+                <!-- Delete Form (Action updated via JS) -->
+                <form id="delete-form" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                        class="px-5 py-2.5 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition text-sm shadow-lg shadow-red-200">
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </x-public-layout>
 <script>
     function previewAvatar(input) {
@@ -252,5 +301,29 @@
             // Read the file
             reader.readAsDataURL(input.files[0]);
         }
+
+
     }
+
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteForm = document.getElementById('delete-form');
+
+    function openDeleteModal(url) {
+        // 1. Update the form action with the specific post URL
+        deleteForm.action = url;
+
+        // 2. Show the modal
+        deleteModal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        deleteModal.classList.add('hidden');
+    }
+
+    // Optional: Close on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeDeleteModal();
+        }
+    });
 </script>
