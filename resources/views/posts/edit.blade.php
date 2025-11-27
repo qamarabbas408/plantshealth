@@ -50,12 +50,15 @@
 
 <body class="bg-white text-gray-900 antialiased">
 
-    <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" id="storyForm">
+    <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data" id="storyForm">
         @csrf
-        <input type="hidden" name="body" id="body-content">
+        @method('PUT') <!-- Crucial for Update -->
+
+        <!-- Populate Body content -->
+        <input type="hidden" name="body" id="body-content" value="{{ $post->body }}">
+
         <!-- NEW: Hidden Status Input (Default to draft) -->
         <input type="hidden" name="status" id="status-input" value="draft">
-
         <!-- 1. HEADER -->
         <div class="max-w-screen-xl mx-auto px-4 py-4 flex justify-between items-center sticky top-0 bg-white z-50">
             <div class="flex items-center gap-3">
@@ -90,7 +93,7 @@
         <div class="max-w-[700px] mx-auto px-4 mt-16 relative">
 
             <!-- TITLE INPUT -->
-            <input type="text" name="title" placeholder="Title" required autofocus
+            <input type="text" name="title" value="{{ $post->title }}" placeholder="Title" required autofocus
                 class="w-full text-5xl font-serif font-bold placeholder-gray-300 text-gray-800 border-none outline-none focus:ring-0 p-0 mb-6 bg-transparent">
 
             <!-- EDITOR WRAPPER -->
@@ -173,8 +176,19 @@
                     <div class="bg-gray-50 p-6 rounded-md border border-gray-100">
                         <div class="relative bg-gray-200 h-56 w-full mb-4 flex items-center justify-center cursor-pointer overflow-hidden group"
                             onclick="document.getElementById('coverImage').click()">
-                            <img id="modalPreview" class="absolute inset-0 w-full h-full object-cover hidden">
-                            <span id="modalText" class="text-gray-400 text-sm group-hover:text-gray-600">Add a
+                            @php
+                                $imgSrc = '';
+                                $isHidden = 'hidden';
+                                if ($post->image_path) {
+                                    $imgSrc = Str::startsWith($post->image_path, 'http')
+                                        ? $post->image_path
+                                        : asset('storage/' . $post->image_path);
+                                    $isHidden = '';
+                                }
+                            @endphp
+                            <img id="modalPreview" src="{{ $imgSrc }}"
+                                class="absolute inset-0 w-full h-full object-cover {{ $isHidden }}">
+                            <span id="modalText" class="text-gray-400 ... {{ $isHidden ? '' : 'hidden' }}">Add a
                                 high-quality image...</span>
                         </div>
                         <input type="file" name="featured_image" id="coverImage" class="hidden"
@@ -190,7 +204,8 @@
                 <div>
                     <p class="text-sm text-gray-500 mb-4">Publishing to: <strong>{{ Auth::user()->name }}</strong></p>
                     <p class="text-sm text-gray-600 mb-2">Add or change topics (up to 5):</p>
-                    <input type="text" name="tags" placeholder="Agriculture, Innovation..."
+                    <input type="text" name="tags" value="{{ $post->tags->pluck('name')->implode(', ') }}"
+                        placeholder="Agriculture, Innovation..."
                         class="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-green-600 mb-8 bg-transparent">
                     <!-- Inside Modal -->
                     <button type="submit" onclick="setStatus('publish')"
@@ -220,6 +235,9 @@
                 ]
             }
         });
+
+        // NEW: Load existing content
+        quill.root.innerHTML = document.getElementById('body-content').value;
 
         // 2. Sidebar Tracking Logic
         const sidebar = document.getElementById('sidebar-controls');

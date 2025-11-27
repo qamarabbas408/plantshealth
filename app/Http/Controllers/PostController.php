@@ -76,47 +76,111 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        // Validation
+        // 1. Determine Status based on which button was clicked
+        // We will send an input named 'status' with value 'publish' or 'draft'
+        $isPublished = $request->input('status') === 'publish';
+
+        // 2. Validation
+        // If it's a draft, we might be lenient, but for now let's keep title/body required
         $request->validate([
             'title' => 'required|max:255',
-            'body' => 'required', // This is the HTML from Quill
-            'featured_image' => 'nullable|image|max:5120', // Max 5MB
+            'body' => 'required',
         ]);
 
-        // 1. Handle Image Upload
+        // 3. Handle Image Upload
         $imagePath = null;
         if ($request->hasFile('featured_image')) {
             $imagePath = $request->file('featured_image')->store('posts', 'public');
         }
 
-        // 2. Create Post
+        // 4. Create Post
         $post = Post::create([
             'user_id' => Auth::id(),
             'title' => $request->title,
-            // Create a slug (e.g., "My Title" -> "my-title-xl3s")
-            'slug' => Str::slug($request->title).'-'.Str::random(5),
+            'slug' => Str::slug($request->title).'-'.bin2hex(random_bytes(6)),
             'body' => $request->body,
-            // Create excerpt from HTML body (first 150 chars)
             'excerpt' => Str::limit(strip_tags($request->body), 150),
             'image_path' => $imagePath,
-            'is_published' => true,
+            'is_published' => $isPublished, // <--- Dynamic Status
         ]);
 
-        // 3. Handle Tags (Input: "Tech, Science")
+        // 5. Handle Tags
         if ($request->tags) {
             $tagNames = explode(',', $request->tags);
             foreach ($tagNames as $name) {
                 $cleanName = trim($name);
                 if (! empty($cleanName)) {
-                    // Find tag or create it if it doesn't exist
                     $tag = Tag::firstOrCreate(['name' => $cleanName]);
-                    // Link to post
                     $post->tags()->attach($tag->id);
                 }
             }
         }
 
-        return redirect()->route('home');
+        // 6. Return with specific message
+        $message = $isPublished ? 'Story published!' : 'Draft saved successfully.';
 
+        return redirect()->route('dashboard')->with('success', $message);
+    }
+
+    public function edit($id)
+    {
+        $post = Post::findOrFail($id);
+
+        // Security: Ensure only the author can edit
+        if (Auth::id() !== $post->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('posts.edit', compact('post'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $post = Post::findOrFail($id);
+
+        if (Auth::id() !== $post->user_id) {
+            abort(403);
+        }
+
+        // Determine status
+        $isPublished = $request->input('status') === 'publish';
+
+        // Validate
+        $request->validate([
+            'title' => 'required|max:255',
+            'body' => 'required',
+        ]);
+
+        // Handle Image Update
+        if ($request->hasFile('featured_image')) {
+            $post->image_path = $request->file('featured_image')->store('posts', 'public');
+        }
+
+        // Update Post Fields
+        $post->title = $request->title;
+        // We usually don't update the slug to prevent breaking SEO links,
+        // but you can if you want. Let's keep slug stable for now.
+        $post->body = $request->body;
+        $post->excerpt = Str::limit(strip_tags($request->body), 150);
+        $post->is_published = $isPublished;
+        $post->save();
+
+        // Handle Tags (Sync removes old ones and adds new ones)
+        if ($request->tags) {
+            $tagIds = [];
+            $tagNames = explode(',', $request->tags);
+            foreach ($tagNames as $name) {
+                $cleanName = trim($name);
+                if (! empty($cleanName)) {
+                    $tag = Tag::firstOrCreate(['name' => $cleanName]);
+                    $tagIds[] = $tag->id;
+                }
+            }
+            $post->tags()->sync($tagIds); // 'Sync' is magic for Many-to-Many updates
+        }
+
+        $message = $isPublished ? 'Story updated and published!' : 'Draft updated successfully.';
+
+        return redirect()->route('dashboard')->with('success', $message);
     }
 }
