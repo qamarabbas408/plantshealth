@@ -168,7 +168,7 @@
                 <button type="button" onclick="closeModal()"
                     class="text-3xl text-gray-400 hover:text-gray-800">&times;</button>
             </div>
-            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 mt-8 px-4">
+            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 mt-8 px-4 items-center">
 
                 <!-- Preview Side -->
                 <div>
@@ -207,6 +207,16 @@
                     <input type="text" name="tags" value="{{ $post->tags->pluck('name')->implode(', ') }}"
                         placeholder="Agriculture, Innovation..."
                         class="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-green-600 mb-8 bg-transparent">
+
+                    <!-- NEW: Allow Comments Toggle (With State Check) -->
+                    <div class="flex items-center mb-8">
+                        <input type="checkbox" name="allow_comments" id="allow_comments" value="1"
+                            {{ $post->comments_open ? 'checked' : '' }}
+                            class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2">
+                        <label for="allow_comments" class="ml-2 text-sm text-gray-600 cursor-pointer">
+                            Allow readers to leave comments
+                        </label>
+                    </div>
                     <!-- Inside Modal -->
                     <button type="submit" onclick="setStatus('publish')"
                         class="bg-green-600 text-white font-bold py-2 px-8 rounded-full hover:bg-green-700 transition">

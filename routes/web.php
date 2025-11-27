@@ -3,7 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController; // Don't forget to import this at top
-use App\Http\Controllers\RegisterController; // Don't forget to import this at top
+use App\Http\Controllers\RegisterController; 
+use App\Http\Controllers\CommentController; // Don't forget to import this at top
 use App\Models\Post; // Don't forget to import this at top
 use Illuminate\Support\Facades\Route;
 
@@ -89,6 +90,11 @@ Route::middleware(['auth'])->group(function () {
     // Edit Story Routes
     Route::get('/p/{id}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/p/{id}/update', [PostController::class, 'update'])->name('posts.update');
+
+
+    Route::post('/posts/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/posts/{id}/toggle-comments', [PostController::class, 'toggleCommentStatus'])->name('posts.toggleComments');
+
 
 });
 

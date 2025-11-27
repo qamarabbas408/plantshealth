@@ -11,21 +11,23 @@ use Illuminate\View\View;
 
 class PostController extends Controller
 {
-    //
+    public function toggleCommentStatus($id)
+    {
+        $post = Post::findOrFail($id);
 
-    // public function index()
-    // {
-    //     // 1. Fetch posts with relationships (Author, Tags)
-    //     // 2. Filter only published
-    //     // 3. Order by Newest
-    //     // 4. Paginate (9 posts per page)
-    //     $posts = Post::with(['author', 'tags'])
-    //                 ->where('is_published', true)
-    //                 ->latest()
-    //                 ->paginate(3);
+        // Security Check: Only the author can close/open comments
+        if (Auth::id() !== $post->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    //     return view('posts.index', compact('posts'));
-    // }
+        // Toggle the boolean value (True -> False, False -> True)
+        $post->comments_open = ! $post->comments_open;
+        $post->save();
+
+        $status = $post->comments_open ? 'reopened' : 'closed';
+
+        return back()->with('success', "Discussion has been $status.");
+    }
 
     public function index(Request $request)
     {
@@ -61,7 +63,7 @@ class PostController extends Controller
     {
         // Find post by slug, or show 404 if missing
         // We also load the 'author' and 'tags' to display them
-        $post = Post::with(['author', 'tags'])
+        $post = Post::with(['author', 'tags', 'comments.user'])
             ->where('slug', $slug)
             ->where('is_published', true)
             ->firstOrFail();
@@ -102,6 +104,9 @@ class PostController extends Controller
             'excerpt' => Str::limit(strip_tags($request->body), 150),
             'image_path' => $imagePath,
             'is_published' => $isPublished, // <--- Dynamic Status
+            // If checked, it returns true (1). If unchecked, false (0).
+            'comments_open' => $request->boolean('allow_comments'),
+
         ]);
 
         // 5. Handle Tags
@@ -163,6 +168,9 @@ class PostController extends Controller
         $post->body = $request->body;
         $post->excerpt = Str::limit(strip_tags($request->body), 150);
         $post->is_published = $isPublished;
+
+        // If checked, it returns true (1). If unchecked, false (0).
+        $post->comments_open = $request->boolean('allow_comments');
         $post->save();
 
         // Handle Tags (Sync removes old ones and adds new ones)
