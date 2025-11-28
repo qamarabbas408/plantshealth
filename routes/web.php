@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController; // Don't forget to import this at to
 use App\Http\Controllers\RegisterController; // Don't forget to import this at top
 use App\Models\Post;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PageController; // Import at top
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +25,7 @@ Route::get('/', function () {
     $posts = Post::with(['author', 'tags'])
         ->where('is_published', true)
         ->latest()
-        ->take(3)
+        ->take(6)
         ->get();
 
     // return view('home');
@@ -122,3 +123,6 @@ Route::get('/@{username}/{slug}', [PostController::class, 'show'])->name('posts.
 
 // Blog Archive Route
 Route::get('/blog', [PostController::class, 'index'])->name('posts.index');
+
+Route::get('/about', [PageController::class, 'about'])->name('pages.about');
+Route::get('/editorial-board', [PageController::class, 'editorial'])->name('pages.editorial');
