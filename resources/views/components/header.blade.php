@@ -1,4 +1,3 @@
-
 <nav class="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 transition-all duration-300"
     id="main-nav">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,7 +22,7 @@
                     class=" font-medium transition-colors duration-200 {{ request()->routeIs('home') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
                     {{ __('Home') }}
                 </a>
-                <a href="{{ route('pages.about')}}"
+                <a href="{{ route('pages.about') }}"
                     class=" font-medium transition-colors duration-200  {{ request()->routeIs('pages.about') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
                     {{ __('About') }}
                 </a>
@@ -86,13 +85,11 @@
                         <!-- User Menu -->
                         <div id="user-dropdown"
                             class="absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-xl py-2 hidden border border-gray-100 z-50">
-                            <!-- Header -->
                             <div class="px-4 py-3 border-b border-gray-100">
                                 <p class="text-sm font-semibold text-gray-900 truncate">{{ Auth::user()->name }}</p>
                                 <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
                             </div>
 
-                            <!-- Links -->
                             @if (Auth::user()->role === 'admin')
                                 <a href="{{ route('admin.dashboard') }}"
                                     class="block px-4 py-2 text-sm text-brand-green font-bold hover:bg-green-50">Admin
@@ -104,10 +101,13 @@
 
                             <a href="{{ route('posts.create') }}"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Write a Story</a>
+                            <a href="{{ route('stats.index') }}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Stats</a>
+                            <a href="{{ route('profile.edit') }}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</a>
 
                             <div class="border-t border-gray-100 my-1"></div>
 
-                            <!-- Logout -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
@@ -165,11 +165,11 @@
                 class="block px-3 py-3 rounded-md text-base font-medium {{ request()->routeIs('home') ? 'bg-green-50 text-brand-green font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
                 {{ __('Home') }}
             </a>
-            <a href="{{ route('pages.about')}}"
+            <a href="{{ route('pages.about') }}"
                 class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('pages.about') ? 'bg-green-50 text-brand-green font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
                 {{ __('About the Journal') }}
             </a>
-            <a href="{{ route('pages.editorial')}}"
+            <a href="{{ route('pages.editorial') }}"
                 class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 {{ request()->routeIs('pages.editorial') ? 'bg-green-50 text-brand-green font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
                 {{ __('Editorial Board') }}
             </a>

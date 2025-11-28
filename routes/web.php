@@ -8,6 +8,8 @@ use App\Http\Controllers\PasswordResetController; // Don't forget to import this
 use App\Http\Controllers\PostController; // Don't forget to import this at top
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\StatsController;
+
 use App\Models\Post; // Import at top
 use Illuminate\Support\Facades\Route; // Import at top
 
@@ -126,6 +128,9 @@ Route::middleware(['auth'])->group(function () {
     // Interactions
     Route::post('/post/{id}/like', [InteractionController::class, 'toggleLike'])->name('post.like');
     Route::post('/post/{id}/bookmark', [InteractionController::class, 'toggleBookmark'])->name('post.bookmark');
+
+       // Stats
+    Route::get('/me/stats', [StatsController::class, 'index'])->name('stats.index');
 });
 
 // Route::get('/story/{slug}', [PostController::class, 'show'])->name('posts.show');

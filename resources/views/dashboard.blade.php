@@ -26,33 +26,23 @@
                     <p>{{ session('success') }}</p>
                 </div>
             @endif
+<!-- GRID START -->
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="max-w-4xl mx-auto">
 
                 <!-- 2. LEFT COLUMN: MY STORIES -->
-                <div class="lg:col-span-2 space-y-6">
+                <div class="space-y-6">
 
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
-                                </path>
-                            </svg>
                             Your Stories
                         </h2>
-
                         <!-- TABS -->
                         <div class="flex bg-gray-200 p-1 rounded-lg">
                             <a href="{{ route('dashboard', ['view' => 'published']) }}"
-                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') != 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
-                                Published
-                            </a>
+                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') != 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">Published</a>
                             <a href="{{ route('dashboard', ['view' => 'drafts']) }}"
-                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') == 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
-                                Drafts
-                            </a>
+                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') == 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">Drafts</a>
                         </div>
                     </div>
 
@@ -164,28 +154,6 @@
                         {{ $stories->appends(['view' => $view])->links() }}
                     </div>
                 </div> <!-- End of Left Column -->
-
-                <!-- Profile Card in Dashboard -->
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
-                    <div class="flex justify-center mb-4">
-                        @if (Auth::user()->avatar)
-                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
-                                class="w-20 h-20 rounded-full object-cover">
-                        @else
-                            <div
-                                class="w-20 h-20 rounded-full bg-brand-green flex items-center justify-center text-white text-xl font-bold">
-                                {{ substr(Auth::user()->name, 0, 1) }}
-                            </div>
-                        @endif
-                    </div>
-                    <h3 class="font-bold text-lg">{{ Auth::user()->name }}</h3>
-                    <p class="text-sm text-gray-500 mb-4">{{ Auth::user()->affiliation ?? 'No affiliation set' }}</p>
-
-                    <a href="{{ route('profile.edit') }}"
-                        class="block w-full border border-gray-300 text-gray-700 font-semibold py-2 rounded hover:bg-gray-50">
-                        Edit Profile
-                    </a>
-                </div>
 
             </div>
         </div>
