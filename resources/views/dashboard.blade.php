@@ -154,82 +154,26 @@
                     </div>
                 </div> <!-- End of Left Column -->
 
-                <!-- 3. RIGHT COLUMN: PROFILE SETTINGS -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-24">
-                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            Profile Settings
-                        </h2>
-
-                        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-
-                            <!-- Avatar Preview -->
-                            <div class="flex justify-center mb-6">
-                                <div class="relative w-24 h-24">
-
-                                    <!-- 1. The Image Tag (Always render it, but hide it if no avatar exists) -->
-                                    <img id="avatar-preview"
-                                        src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : '' }}"
-                                        class="w-24 h-24 rounded-full object-cover border-2 border-gray-100 shadow {{ Auth::user()->avatar ? '' : 'hidden' }}">
-
-                                    <!-- 2. The Initials Placeholder (Hide it if avatar exists) -->
-                                    <div id="avatar-placeholder"
-                                        class="w-24 h-24 rounded-full bg-brand-green flex items-center justify-center text-white text-2xl font-bold border-2 border-gray-100 shadow {{ Auth::user()->avatar ? 'hidden' : '' }}">
-                                        {{ substr(Auth::user()->name, 0, 1) }}
-                                    </div>
-
-                                    <!-- Upload Icon Overlay -->
-                                    <label for="avatar"
-                                        class="absolute bottom-0 right-0 bg-white border border-gray-200 p-1.5 rounded-full cursor-pointer hover:bg-gray-50 shadow-sm">
-                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
-                                            </path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
-                                    </label>
-
-                                    <!-- File Input with Event Listener -->
-                                    <input type="file" name="avatar" id="avatar" class="hidden"
-                                        onchange="previewAvatar(this)">
-                                </div>
+                <!-- Profile Card in Dashboard -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
+                    <div class="flex justify-center mb-4">
+                        @if (Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
+                                class="w-20 h-20 rounded-full object-cover">
+                        @else
+                            <div
+                                class="w-20 h-20 rounded-full bg-brand-green flex items-center justify-center text-white text-xl font-bold">
+                                {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
-
-                            <!-- Name -->
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
-                                <input type="text" name="name" value="{{ Auth::user()->name }}"
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand-green focus:ring focus:ring-brand-green focus:ring-opacity-50 p-2 border">
-                            </div>
-
-                            <!-- Email -->
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <input type="email" readonly name="email" value="{{ Auth::user()->email }}"
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand-green focus:ring focus:ring-brand-green focus:ring-opacity-50 p-2 border">
-                            </div>
-
-                            <!-- Bio -->
-                            <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Short Bio</label>
-                                <textarea name="bio" rows="3"
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand-green focus:ring focus:ring-brand-green focus:ring-opacity-50 p-2 border"
-                                    placeholder="Tell us about your research...">{{ Auth::user()->bio }}</textarea>
-                            </div>
-
-                            <button type="submit"
-                                class="w-full bg-gray-900 text-white font-bold py-2 rounded-md hover:bg-gray-800 transition">
-                                Save Changes
-                            </button>
-                        </form>
+                        @endif
                     </div>
+                    <h3 class="font-bold text-lg">{{ Auth::user()->name }}</h3>
+                    <p class="text-sm text-gray-500 mb-4">{{ Auth::user()->affiliation ?? 'No affiliation set' }}</p>
+
+                    <a href="{{ route('profile.edit') }}"
+                        class="block w-full border border-gray-300 text-gray-700 font-semibold py-2 rounded hover:bg-gray-50">
+                        Edit Profile
+                    </a>
                 </div>
 
             </div>

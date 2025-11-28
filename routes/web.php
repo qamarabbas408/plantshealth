@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
-use App\Http\Controllers\PostController; // Don't forget to import this at top
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PasswordResetController; // Don't forget to import this at top
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController; // Don't forget to import this at top
 use App\Http\Controllers\RegisterController; // Don't forget to import this at top
-use App\Models\Post; // Don't forget to import this at top
+use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,6 +48,14 @@ Route::middleware('guest')->group(function () {
     // ADD THESE:
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+
+    // FORGOT PASSWORD ROUTES
+    Route::get('/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+
+    // RESET PASSWORD ROUTES
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 });
 
 // Logout Route (Only for logged in users)
@@ -96,6 +105,14 @@ Route::middleware(['auth'])->group(function () {
 
     // Delete Post Route
     Route::delete('/posts/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    Route::get('/settings/profile', function () {
+        return view('profile.edit');
+    })->name('profile.edit');
+
+    // Password & Security Page
+    Route::get('/settings/password', [ProfileController::class, 'editPassword'])->name('password.edit');
+    Route::post('/settings/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 
 });
 

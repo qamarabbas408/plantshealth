@@ -24,6 +24,10 @@ class User extends Authenticatable
         'role',
         'avatar',
         'bio',
+        'academic_title',
+        'affiliation',
+        'orcid_id',
+        'url_google_scholar',
 
     ];
 

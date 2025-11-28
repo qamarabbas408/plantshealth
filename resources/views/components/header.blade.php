@@ -8,7 +8,7 @@
                 <div class="flex-shrink-0 flex items-center gap-2">
                     <a href="{{ route('home') }}" class="flex items-center gap-2">
                         <div class="w-12 h-12 overflow-hidden">
-                            <img class="w-full h-full object-contain" src="{{ asset('images/logo-leaves.png') }}"
+                            <img class="w-full h-full object-contain" src="{{ asset('images/leaf-logo.png') }}"
                                 alt="Logo" />
                         </div>
                         <span class="font-serif font-bold text-xl md:text-2xl text-gray-900 tracking-tight">Plants<span

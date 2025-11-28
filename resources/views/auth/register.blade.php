@@ -1,41 +1,67 @@
 <x-public-layout>
     <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8 bg-white p-8 rounded shadow">
+        <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
             
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Become an Author
-            </h2>
+            <div class="text-center">
+                <img src="{{ asset('images/leaf-logo.png') }}" class="mx-auto h-12 w-auto" alt="Logo">
+                <h2 class="mt-6 text-3xl font-serif font-bold text-gray-900">
+                    Become an Author
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Join our community of researchers
+                </p>
+            </div>
 
-            <form class="mt-8 space-y-6" action="{{ route('register.post') }}" method="POST">
+            <form class="mt-8 space-y-5" action="{{ route('register.post') }}" method="POST">
                 @csrf
 
                 <!-- Name -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input name="name" type="text" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                </div>
+                <x-text-input 
+                    label="Full Name" 
+                    name="name" 
+                    placeholder="Dr. John Doe"
+                    :value="old('name')" 
+                />
 
                 <!-- Email -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input name="email" type="email" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                </div>
+                <x-text-input 
+                    label="Email Address" 
+                    name="email" 
+                    type="email"
+                    placeholder="name@university.edu"
+                    :value="old('email')" 
+                />
 
                 <!-- Password -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Password</label>
-                    <input name="password" type="password" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                </div>
+                <x-text-input 
+                    label="Password" 
+                    name="password" 
+                    type="password"
+                    placeholder="Minimum 8 characters" 
+                />
 
                 <!-- Confirm Password -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                    <input name="password_confirmation" type="password" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                <x-text-input 
+                    label="Confirm Password" 
+                    name="password_confirmation" 
+                    type="password"
+                    placeholder="Re-type your password" 
+                />
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-brand-green hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green transition transform hover:-translate-y-0.5">
+                        Register Account
+                    </button>
                 </div>
 
-                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-green hover:bg-green-700">
-                    Register
-                </button>
+                <div class="text-center mt-4">
+                    <p class="text-sm text-gray-600">
+                        Already have an account? 
+                        <a href="{{ route('login') }}" class="font-medium text-brand-green hover:text-green-700 hover:underline">
+                            Log in here
+                        </a>
+                    </p>
+                </div>
             </form>
         </div>
     </div>
