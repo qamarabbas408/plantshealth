@@ -1,4 +1,119 @@
 <x-public-layout>
+    <!-- FLOATING INTERACTION BAR (Left Side) -->
+    <div
+        class="fixed left-4 bottom-0 w-full z-40 md:w-auto md:top-1/2 md:-translate-y-1/2 md:left-8 lg:left-12 hidden md:flex flex-col gap-6">
+
+        <!-- 1. LIKE BUTTON -->
+        <div class="group relative flex flex-col items-center">
+            <button onclick="toggleLike({{ $post->id }})" id="like-btn"
+                class="w-12 h-12 rounded-full border shadow-sm flex items-center justify-center transition-all duration-200 
+                {{ Auth::check() && $post->isLikedBy(Auth::user()) ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200' }}">
+
+                <svg id="like-icon"
+                    class="w-6 h-6 {{ Auth::check() && $post->isLikedBy(Auth::user()) ? 'fill-current' : 'fill-none' }}"
+                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                    </path>
+                </svg>
+            </button>
+            <span id="like-count" class="text-xs font-bold text-gray-500 mt-2">{{ $post->likes()->count() }}</span>
+        </div>
+
+        <!-- 2. BOOKMARK BUTTON -->
+        <button onclick="toggleBookmark({{ $post->id }})" id="bookmark-btn"
+            class="w-12 h-12 rounded-full border shadow-sm flex items-center justify-center transition-all duration-200
+            {{ Auth::check() && $post->isBookmarkedBy(Auth::user()) ? 'bg-brand-gold text-white border-brand-gold' : 'bg-white border-gray-200 text-gray-500 hover:text-brand-gold hover:border-brand-gold' }}">
+
+            <svg id="bookmark-icon"
+                class="w-5 h-5 {{ Auth::check() && $post->isBookmarkedBy(Auth::user()) ? 'fill-current' : 'fill-none' }}"
+                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+            </svg>
+        </button>
+
+        <!-- 3. SHARE (Twitter) -->
+        <a href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(url()->current()) }}"
+            target="_blank"
+            class="w-12 h-12 rounded-full border border-gray-200 bg-white shadow-sm flex items-center justify-center text-gray-500 hover:text-blue-400 hover:border-blue-400 transition-all">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+            </svg>
+        </a>
+    </div>
+
+    <!-- AJAX SCRIPT -->
+    <script>
+        const csrfToken = "{{ csrf_token() }}";
+        const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
+
+        function toggleLike(postId) {
+            if (!isLoggedIn) return window.location.href = "{{ route('login') }}";
+
+            fetch(`/post/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const btn = document.getElementById('like-btn');
+                    const icon = document.getElementById('like-icon');
+                    const count = document.getElementById('like-count');
+
+                    if (data.liked) {
+                        // Liked State
+                        btn.className =
+                            "w-12 h-12 rounded-full border shadow-sm flex items-center justify-center transition-all duration-200 bg-red-50 border-red-200 text-red-500";
+                        icon.classList.add('fill-current');
+                        icon.classList.remove('fill-none');
+                    } else {
+                        // Unliked State
+                        btn.className =
+                            "w-12 h-12 rounded-full border shadow-sm flex items-center justify-center transition-all duration-200 bg-white border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200";
+                        icon.classList.remove('fill-current');
+                        icon.classList.add('fill-none');
+                    }
+                    count.innerText = data.count;
+                });
+        }
+
+        function toggleBookmark(postId) {
+            if (!isLoggedIn) return window.location.href = "{{ route('login') }}";
+
+            fetch(`/post/${postId}/bookmark`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const btn = document.getElementById('bookmark-btn');
+                    const icon = document.getElementById('bookmark-icon');
+
+                    if (data.bookmarked) {
+                        // Bookmarked State
+                        btn.className =
+                            "w-12 h-12 rounded-full border shadow-sm flex items-center justify-center transition-all duration-200 bg-brand-gold text-white border-brand-gold";
+                        icon.classList.add('fill-current');
+                        icon.classList.remove('fill-none');
+                    } else {
+                        // Unbookmarked State
+                        btn.className =
+                            "w-12 h-12 rounded-full border shadow-sm flex items-center justify-center transition-all duration-200 bg-white border-gray-200 text-gray-500 hover:text-brand-gold hover:border-brand-gold";
+                        icon.classList.remove('fill-current');
+                        icon.classList.add('fill-none');
+                    }
+                });
+        }
+    </script>
+
     <!-- Add Merriweather Font for Reading -->
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap"
         rel="stylesheet">

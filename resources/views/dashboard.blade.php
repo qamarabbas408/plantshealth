@@ -59,12 +59,12 @@
                     <!-- LOGIC TO FETCH DATA -->
                     @php
                         $view = request('view');
-                        // If view is 'drafts', show only unpublished. Otherwise show published.
                         $stories = Auth::user()
                             ->posts()
                             ->where('is_published', $view != 'drafts')
+                            ->withCount(['likes', 'comments', 'bookmarks']) // Count analytics
                             ->latest()
-                            ->paginate(5); // <--- Changed from get() to paginate(5)
+                            ->paginate(5);
                     @endphp
 
                     <!-- List of Stories -->
@@ -72,7 +72,7 @@
                         <div
                             class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex gap-4 hover:shadow-md transition">
                             <!-- Thumbnail -->
-                            <div class="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">
+                            <div class="w-24 h-24 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden relative">
                                 @if ($post->image_path)
                                     @php
                                         $imgSrc = Str::startsWith($post->image_path, 'http')
@@ -86,49 +86,60 @@
                                 @endif
                             </div>
 
-                            <div class="flex justify-between items-start flex-1">
-                                <div class='flex flex-1 flex-col'>
-                                    <h3 class="font-bold text-lg text-gray-900 leading-tight">
-                                        @if ($post->is_published)
-                                            <a href="{{ route('posts.show', ['username' => Str::slug($post->author->name), 'slug' => $post->slug]) }}"
-                                                class="hover:underline">{{ $post->title }}</a>
-                                        @else
-                                            <a href="{{ route('posts.edit', $post->id) }}"
-                                                class="hover:text-brand-green hover:underline">{{ $post->title }}
-                                                <span class="text-xs text-gray-400 ml-1">(Edit)</span></a>
-                                        @endif
-                                    </h3>
-                                    <p>
-                                        {{ $post->excerpt }}
-                                    </p>
+                            <div class="flex flex-col justify-between flex-1">
+                                <div>
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="font-bold text-lg text-gray-900 leading-tight">
+                                            @if ($post->is_published)
+                                                <a href="{{ route('posts.show', ['username' => Str::slug($post->author->name), 'slug' => $post->slug]) }}"
+                                                    class="hover:underline">{{ $post->title }}</a>
+                                            @else
+                                                <span class="text-gray-800">{{ $post->title }}</span>
+                                            @endif
+                                        </h3>
 
+                                        <!-- Actions -->
+                                        <div class="flex items-center gap-2">
+                                            <!-- Status -->
+                                            <span
+                                                class="px-2 py-1 text-xs font-semibold rounded-full {{ $post->is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
+                                                {{ $post->is_published ? 'Published' : 'Draft' }}
+                                            </span>
+
+                                            <!-- Delete Trigger -->
+                                            <button type="button"
+                                                onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}')"
+                                                class="text-gray-400 hover:text-red-600 transition p-1"
+                                                title="Delete Story">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ $post->excerpt }}</p>
                                 </div>
 
-                                <div class="flex items-center gap-3">
-                                    <!-- Status Badge -->
-                                    <span
-                                        class="px-2 py-1 text-xs font-semibold rounded-full {{ $post->is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
-                                        {{ $post->is_published ? 'Published' : 'Draft' }}
-                                    </span>
-
-                                    <!-- DELETE BUTTON -->
-                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST"
-                                        onsubmit="return confirm('Are you sure you want to delete this story? This cannot be undone.');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <!-- DELETE BUTTON (Trigger) -->
-                                        <button type="button"
-                                            onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}')"
-                                            class="text-gray-400 hover:text-red-600 transition p-1"
-                                            title="Delete Story">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                <!-- Analytics Bar -->
+                                <div
+                                    class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400">
+                                    <span class="flex items-center gap-1" title="Likes"><svg class="w-3 h-3"
+                                            fill="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                                            </path>
+                                        </svg> {{ $post->likes_count }}</span>
+                                    <span class="flex items-center gap-1" title="Comments"><svg class="w-3 h-3"
+                                            fill="currentColor" viewBox="0 0 24 24">
+                                            <path fill-rule="evenodd"
+                                                d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
+                                                clip-rule="evenodd"></path>
+                                        </svg> {{ $post->comments_count }}</span>
+                                    <span class="ml-auto">{{ $post->created_at->format('M d, Y') }}</span>
                                 </div>
                             </div>
                         </div>

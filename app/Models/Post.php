@@ -42,4 +42,35 @@ class Post extends Model
     {
         return $this->hasMany(Comment::class)->latest(); // Newest comments first
     }
+
+    // Add these methods
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'post_user_likes');
+    }
+
+    public function bookmarks()
+    {
+        return $this->belongsToMany(User::class, 'post_user_bookmarks');
+    }
+
+    // Helper to check if current user liked it
+    public function isLikedBy($user)
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->likes->contains($user->id);
+    }
+
+    // Helper to check if current user bookmarked it
+    public function isBookmarkedBy($user)
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->bookmarks->contains($user->id);
+    }
 }

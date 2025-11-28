@@ -2,13 +2,14 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\InteractionController; // Don't forget to import this at top
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PasswordResetController; // Don't forget to import this at top
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\ProfileController; // Don't forget to import this at top
-use App\Http\Controllers\RegisterController; // Don't forget to import this at top
-use App\Models\Post;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController; // Import at top
+use App\Http\Controllers\PostController; // Don't forget to import this at top
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RegisterController;
+use App\Models\Post; // Import at top
+use Illuminate\Support\Facades\Route; // Import at top
 
 /*
 |--------------------------------------------------------------------------
@@ -88,7 +89,14 @@ Route::middleware(['auth'])->group(function () {
         }
 
         // Otherwise, show the normal Author dashboard
-        return view('dashboard');
+        // NEW LOGIC: Fetch posts WITH counts
+        $posts = Auth::user()
+            ->posts()
+            ->withCount(['likes', 'bookmarks', 'comments']) // <--- THE MAGIC
+            ->latest()
+            ->get();
+
+        return view('dashboard', compact('posts'));
 
     })->name('dashboard');
     // Profile Update Route
@@ -115,6 +123,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings/password', [ProfileController::class, 'editPassword'])->name('password.edit');
     Route::post('/settings/password', [ProfileController::class, 'updatePassword'])->name('password.update');
 
+    // Interactions
+    Route::post('/post/{id}/like', [InteractionController::class, 'toggleLike'])->name('post.like');
+    Route::post('/post/{id}/bookmark', [InteractionController::class, 'toggleBookmark'])->name('post.bookmark');
 });
 
 // Route::get('/story/{slug}', [PostController::class, 'show'])->name('posts.show');
