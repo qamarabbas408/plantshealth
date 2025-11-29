@@ -6,9 +6,9 @@ use App\Models\Post;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\Storage; 
 
 class PostController extends Controller
 {
@@ -34,7 +34,7 @@ class PostController extends Controller
     {
         // 1. Start the query
         $query = Post::with(['author', 'tags'])
-            ->where('is_published', true);
+            ->published(); // <--- Uses our new scope
 
         // 2. Filter by Tag (if selected)
         if ($request->has('tag')) {
@@ -64,9 +64,9 @@ class PostController extends Controller
     {
         // Find post by slug, or show 404 if missing
         // We also load the 'author' and 'tags' to display them
-        $post = Post::with(['author', 'tags', 'comments.user'])
+        $post = Post::with(['author', 'tags'])
             ->where('slug', $slug)
-            ->where('is_published', true)
+            ->published() // <--- Only show if published
             ->firstOrFail();
 
         return view('posts.show', compact('post'));
@@ -79,16 +79,16 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Determine Status based on which button was clicked
-        // We will send an input named 'status' with value 'publish' or 'draft'
-        $isPublished = $request->input('status') === 'publish';
 
-        // 2. Validation
-        // If it's a draft, we might be lenient, but for now let's keep title/body required
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
         ]);
+
+        // 3. Determine Status
+        // If user clicked "Save Draft", status is 'draft'.
+        // If user clicked "Publish", status is 'pending' (sent to admin).
+        $status = $request->input('submission_type') === 'draft' ? 'draft' : 'pending';
 
         // 3. Handle Image Upload
         $imagePath = null;
@@ -104,7 +104,8 @@ class PostController extends Controller
             'body' => $request->body,
             'excerpt' => Str::limit(strip_tags($request->body), 150),
             'image_path' => $imagePath,
-            'is_published' => $isPublished, // <--- Dynamic Status
+            // 'is_published' => $isPublished, // <--- Dynamic Status
+            'status' => $status,
             // If checked, it returns true (1). If unchecked, false (0).
             'comments_open' => $request->boolean('allow_comments'),
 
@@ -122,10 +123,14 @@ class PostController extends Controller
             }
         }
 
-        // 6. Return with specific message
-        $message = $isPublished ? 'Story published!' : 'Draft saved successfully.';
+        // 6. Redirect with specific message
+        $message = $status === 'draft'
+            ? 'Story saved to drafts.'
+            : 'Story submitted for review!';
 
-        return redirect()->route('dashboard')->with('success', $message);
+        return redirect()->route('dashboard', ['view' => $status === 'draft' ? 'drafts' : 'pending'])
+            ->with('success', $message);
+
     }
 
     public function edit($id)
@@ -140,44 +145,41 @@ class PostController extends Controller
         return view('posts.edit', compact('post'));
     }
 
+    // 2. Update the Post
     public function update(Request $request, $id)
     {
-        $post = Post::findOrFail($id);
+        $post = Post::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        if (Auth::id() !== $post->user_id) {
-            abort(403);
-        }
-
-        // Determine status
-        $isPublished = $request->input('status') === 'publish';
-
-        // Validate
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
         ]);
 
-        // Handle Image Update
+        // Handle Image Update (Only if a new file is uploaded)
         if ($request->hasFile('featured_image')) {
+            // Optional: Delete old image to save space
+            // if($post->image_path) Storage::disk('public')->delete($post->image_path);
+
             $post->image_path = $request->file('featured_image')->store('posts', 'public');
         }
 
-        // Update Post Fields
-        $post->title = $request->title;
-        // We usually don't update the slug to prevent breaking SEO links,
-        // but you can if you want. Let's keep slug stable for now.
-        $post->body = $request->body;
-        $post->excerpt = Str::limit(strip_tags($request->body), 150);
-        $post->is_published = $isPublished;
+        // Determine Status
+        // If "Save Draft", keep as draft. If "Publish", move to Pending.
+        $status = $request->input('submission_type') === 'draft' ? 'draft' : 'pending';
 
-        // If checked, it returns true (1). If unchecked, false (0).
-        $post->comments_open = $request->boolean('allow_comments');
-        $post->save();
+        $post->update([
+            'title' => $request->title,
+            'body' => $request->body,
+            'excerpt' => Str::limit(strip_tags($request->body), 150),
+            'status' => $status,
+            // Only update image if a new one was uploaded
+            'image_path' => $request->hasFile('featured_image') ? $post->image_path : $post->image_path,
+        ]);
 
-        // Handle Tags (Sync removes old ones and adds new ones)
+        // Sync Tags
         if ($request->tags) {
-            $tagIds = [];
             $tagNames = explode(',', $request->tags);
+            $tagIds = [];
             foreach ($tagNames as $name) {
                 $cleanName = trim($name);
                 if (! empty($cleanName)) {
@@ -185,12 +187,15 @@ class PostController extends Controller
                     $tagIds[] = $tag->id;
                 }
             }
-            $post->tags()->sync($tagIds); // 'Sync' is magic for Many-to-Many updates
+            $post->tags()->sync($tagIds); // Sync replaces old tags with new ones
+        } else {
+            $post->tags()->detach(); // Remove tags if input is empty
         }
 
-        $message = $isPublished ? 'Story updated and published!' : 'Draft updated successfully.';
+        $message = $status === 'draft' ? 'Draft updated.' : 'Story submitted for review!';
 
-        return redirect()->route('dashboard')->with('success', $message);
+        return redirect()->route('dashboard', ['view' => $status === 'draft' ? 'drafts' : 'pending'])
+            ->with('success', $message);
     }
 
     public function destroy($id)

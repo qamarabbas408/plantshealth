@@ -9,7 +9,7 @@ use App\Http\Controllers\PostController; // Don't forget to import this at top
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\StatsController;
-
+use App\Http\Controllers\AdminController; 
 use App\Models\Post; // Import at top
 use Illuminate\Support\Facades\Route; // Import at top
 
@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Route; // Import at top
 
 Route::get('/', function () {
     $posts = Post::with(['author', 'tags'])
-        ->where('is_published', true)
+        ->published() // <--- Use scope
         ->latest()
         ->take(6)
         ->get();
@@ -66,17 +66,21 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // ADMIN ROUTES GROUP
+// ADMIN ROUTES GROUP
 Route::middleware(['auth'])->prefix('admin')->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
-    Route::get('/dashboard', function () {
-        // Double check: If user is NOT admin, stop them.
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized');
-        }
-
-        return view('admin.dashboard');
-    })->name('admin.dashboard'); // <--- THIS LINE IS CRITICAL
-
+    // Admin Post Management
+    // 1. View the Draft (We use ID here because Slug might change)
+    Route::get('/posts/{id}/review', [AdminController::class, 'review'])->name('admin.posts.review');
+    
+    // 2. Approve (Publish)
+    Route::post('/posts/{id}/approve', [AdminController::class, 'approve'])->name('admin.posts.approve');
+    
+    // 3. Reject (Send back to draft)
+    Route::delete('/posts/{id}/reject', [AdminController::class, 'reject'])->name('admin.posts.reject');
 });
 
 // Author/User Dashboard Route

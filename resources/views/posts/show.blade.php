@@ -243,6 +243,7 @@
         </div>
 
     </article>
+
     <!-- CONFIRMATION MODAL -->
     <div id="close-discussion-modal" class="fixed inset-0 z-[60] hidden">
         <!-- Overlay -->
@@ -280,6 +281,23 @@
         </div>
     </div>
 
+    <!-- Custom Event: Article Read -->
+    @if (config('services.google.analytics_id'))
+        <script>
+            // Wait for page to load
+            document.addEventListener("DOMContentLoaded", function() {
+                if (typeof gtag === 'function') {
+                    gtag('event', 'read_article', {
+                        'event_category': 'Engagement',
+                        'event_label': '{{ $post->title }}',
+                        'author_name': '{{ $post->author->name }}',
+                        'article_topic': '{{ $post->tags->first()->name ?? 'General' }}',
+                        'publish_date': '{{ $post->created_at->format('Y-m-d') }}'
+                    });
+                }
+            });
+        </script>
+    @endif
 </x-public-layout>
 
 

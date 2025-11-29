@@ -55,14 +55,18 @@
         <input type="hidden" name="body" id="body-content">
         <!-- NEW: Hidden Status Input (Default to draft) -->
         <input type="hidden" name="status" id="status-input" value="draft">
+        <!-- NEW: Hidden input to track if it's a Draft or Publish -->
+        <input type="hidden" name="submission_type" id="submission-type" value="publish">
+
 
         <!-- 1. HEADER -->
         <div class="max-w-screen-xl mx-auto px-4 py-4 flex justify-between items-center sticky top-0 bg-white z-50">
             <div class="flex items-center gap-3">
-                <!-- Logo Code ... -->
-                <span class="text-sm text-gray-500">Draft in {{ Auth::user()->name }}</span>
+                <a href="{{ route('dashboard') }}">
+                    <img src="{{ asset('images/leaf-logo.png') }}" class="w-8 h-8 opacity-80 hover:opacity-100">
+                </a>
+                <span class="text-sm text-gray-500 hidden sm:inline">Draft in {{ Auth::user()->name }}</span>
             </div>
-
             <!-- RIGHT SIDE ACTIONS -->
             <div class="flex items-center gap-2">
 
@@ -73,7 +77,7 @@
                 </a>
 
                 <!-- 2. SAVE DRAFT BUTTON -->
-                <button type="submit" onclick="setStatus('draft')"
+                <button type="submit" onclick="submitAsDraft()"
                     class="text-gray-500 hover:text-gray-900 text-sm font-medium px-4 py-1.5 transition">
                     Save Draft
                 </button>
@@ -130,7 +134,8 @@
                             title="Add Image">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2">
+                                </rect>
                                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                 <polyline points="21 15 16 10 5 21"></polyline>
                             </svg>
@@ -356,6 +361,17 @@
             document.getElementById('status-input').value = status;
             // Note: The form will submit automatically because the buttons are type="submit" 
             // (except the one that opens the modal which is type="button")
+        }
+
+        function submitAsDraft() {
+            // 1. Sync Quill content
+            document.querySelector('input[name=body]').value = quill.root.innerHTML;
+
+            // 2. Set action to 'draft'
+            document.getElementById('submission-type').value = 'draft';
+
+            // 3. Submit Form directly (skip modal)
+            document.getElementById('storyForm').submit();
         }
     </script>
 </body>

@@ -33,6 +33,22 @@
         }
     </script>
 
+    <!-- Google Analytics (GA4) -->
+    @if (config('services.google.analytics_id'))
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+
+            // Config sends the Page View automatically
+            gtag('config', '{{ config('services.google.analytics_id') }}');
+        </script>
+    @endif
+
     <style>
         .font-urdu {
             font-family: 'Noto Nastaliq Urdu', serif;
@@ -89,6 +105,19 @@
             });
         }
     </script>
+
+    <!-- Backend Event Tracking -->
+    @if(session('success') && config('services.google.analytics_id'))
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                if(typeof gtag === 'function'){
+                    gtag('event', 'action_success', {
+                        'message': '{{ session("success") }}'
+                    });
+                }
+            });
+        </script>
+    @endif
 </body>
 
 </html>

@@ -9,7 +9,7 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'slug', 'excerpt', 'body', 'image_path', 'is_published', 'comments_open'];
+    protected $fillable = ['user_id', 'title', 'slug', 'excerpt', 'body', 'image_path', 'is_published', 'comments_open','status'];
 
     // Add this Accessor
     public function getReadTimeAttribute()
@@ -72,5 +72,17 @@ class Post extends Model
         }
 
         return $this->bookmarks->contains($user->id);
+    }
+
+    // Helper: Post::published()->get()
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    // Helper: Post::pending()->get()
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
     }
 }

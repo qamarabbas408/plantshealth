@@ -124,6 +124,7 @@
                         {{ __('Log in') }}
                     </a>
                     <a href="{{ route('register') }}"
+                        onclick="gtag('event', 'click_submit_manuscript', {'location': 'header_desktop'})"
                         class=" hover:bg-green-800 text-white px-5 py-2.5 rounded-full 
                         text-sm font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200
                         {{ request()->routeIs('register') ? 'bg-brand-gold' : 'bg-brand-green' }}
@@ -213,6 +214,7 @@
                     {{ __('Log in') }}
                 </a>
                 <a href="{{ route('register') }}"
+                    onclick="gtag('event', 'click_submit_manuscript', {'location': 'header_desktop'})"
                     class="block w-full text-center bg-brand-green text-white px-4 py-3 rounded-lg font-bold shadow-md hover:bg-green-800">
                     {{ __('Submit Manuscript') }}
                 </a>

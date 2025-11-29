@@ -26,9 +26,9 @@
                     <p>{{ session('success') }}</p>
                 </div>
             @endif
-<!-- GRID START -->
+            <!-- GRID START -->
 
-            <div class="max-w-4xl mx-auto">
+            <div class=" mx-auto">
 
                 <!-- 2. LEFT COLUMN: MY STORIES -->
                 <div class="space-y-6">
@@ -38,23 +38,49 @@
                             Your Stories
                         </h2>
                         <!-- TABS -->
+
                         <div class="flex bg-gray-200 p-1 rounded-lg">
+
+                            <!-- 1. Published Tab (Default) -->
                             <a href="{{ route('dashboard', ['view' => 'published']) }}"
-                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') != 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">Published</a>
+                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ !request('view') || request('view') == 'published' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
+                                Published
+                            </a>
+
+                            <!-- 2. Pending Tab (New) -->
+                            <a href="{{ route('dashboard', ['view' => 'pending']) }}"
+                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') == 'pending' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
+                                Pending
+                            </a>
+
+                            <!-- 3. Drafts Tab -->
                             <a href="{{ route('dashboard', ['view' => 'drafts']) }}"
-                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') == 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">Drafts</a>
+                                class="px-4 py-1.5 rounded-md text-sm font-bold transition {{ request('view') == 'drafts' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">
+                                Drafts
+                            </a>
                         </div>
                     </div>
 
                     <!-- LOGIC TO FETCH DATA -->
                     @php
-                        $view = request('view');
-                        $stories = Auth::user()
+                        $view = request('view', 'published'); // Default to 'published' if no param exists
+                        $query = Auth::user()
                             ->posts()
-                            ->where('is_published', $view != 'drafts')
-                            ->withCount(['likes', 'comments', 'bookmarks']) // Count analytics
-                            ->latest()
-                            ->paginate(5);
+                            ->withCount(['likes', 'comments', 'bookmarks']);
+
+                        // LOGIC SWITCH
+                        if ($view === 'pending') {
+                            // Show articles waiting for Admin
+                            $query->where('status', 'pending');
+                        } elseif ($view === 'drafts') {
+                            // Show Drafts AND Rejected items (since rejected usually need editing)
+                            $query->whereIn('status', ['draft', 'rejected']);
+                        } else {
+                            // Default: Show Published
+                            $query->where('status', 'published');
+                        }
+
+                        $stories = $query->latest()->paginate(5);
                     @endphp
 
                     <!-- List of Stories -->
@@ -80,7 +106,8 @@
                                 <div>
                                     <div class="flex justify-between items-start">
                                         <h3 class="font-bold text-lg text-gray-900 leading-tight">
-                                            @if ($post->is_published)
+                                            <!-- Only link to the article if it is PUBLISHED -->
+                                            @if ($post->status === 'published')
                                                 <a href="{{ route('posts.show', ['username' => Str::slug($post->author->name), 'slug' => $post->slug]) }}"
                                                     class="hover:underline">{{ $post->title }}</a>
                                             @else
@@ -90,10 +117,21 @@
 
                                         <!-- Actions -->
                                         <div class="flex items-center gap-2">
-                                            <!-- Status -->
+                                            <!-- Dynamic Status Badge -->
+                                            @php
+                                                $statusColors = [
+                                                    'published' => 'bg-green-100 text-green-800',
+                                                    'pending' => 'bg-yellow-100 text-yellow-800', // Waiting for Admin
+                                                    'draft' => 'bg-gray-100 text-gray-600',
+                                                    'rejected' => 'bg-red-100 text-red-800',
+                                                ];
+                                                $colorClass =
+                                                    $statusColors[$post->status] ?? 'bg-gray-100 text-gray-600';
+                                            @endphp
+
                                             <span
-                                                class="px-2 py-1 text-xs font-semibold rounded-full {{ $post->is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">
-                                                {{ $post->is_published ? 'Published' : 'Draft' }}
+                                                class="px-2 py-1 text-xs font-semibold rounded-full uppercase {{ $colorClass }}">
+                                                {{ $post->status }}
                                             </span>
 
                                             <!-- Delete Trigger -->
@@ -109,6 +147,20 @@
                                                     </path>
                                                 </svg>
                                             </button>
+                                            @if ($post->status !== 'published' && $post->status != 'pending')
+                                                <a href="{{ route('posts.edit', $post->id) }}"
+                                                    class="text-gray-400 hover:text-brand-green transition p-1"
+                                                    title="Edit Story">
+                                                    <!-- Pencil Icon -->
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                        </path>
+                                                    </svg>
+                                                </a>
+                                            @endif
                                         </div>
                                     </div>
                                     <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ $post->excerpt }}</p>
@@ -117,33 +169,30 @@
                                 <!-- Analytics Bar -->
                                 <div
                                     class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400">
-                                    <span class="flex items-center gap-1" title="Likes"><svg class="w-3 h-3"
-                                            fill="currentColor" viewBox="0 0 24 24">
+                                    <span class="flex items-center gap-1" title="Likes">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
                                             </path>
-                                        </svg> {{ $post->likes_count }}</span>
-                                    <span class="flex items-center gap-1" title="Comments"><svg class="w-3 h-3"
-                                            fill="currentColor" viewBox="0 0 24 24">
+                                        </svg>
+                                        {{ $post->likes_count ?? 0 }}
+                                    </span>
+                                    <span class="flex items-center gap-1" title="Comments">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                             <path fill-rule="evenodd"
                                                 d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
                                                 clip-rule="evenodd"></path>
-                                        </svg> {{ $post->comments_count }}</span>
+                                        </svg>
+                                        {{ $post->comments_count ?? 0 }}
+                                    </span>
                                     <span class="ml-auto">{{ $post->created_at->format('M d, Y') }}</span>
                                 </div>
                             </div>
                         </div>
                     @empty
                         <div class="bg-white p-12 rounded-lg shadow-sm border border-gray-100 text-center">
-                            <div class="text-gray-300 mb-4">
-                                <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                                    </path>
-                                </svg>
-                            </div>
-                            <p class="text-gray-500 mb-4">No
-                                {{ request('view') == 'drafts' ? 'drafts' : 'published stories' }} found.</p>
+                            <!-- Empty State UI -->
+                            <p class="text-gray-500 mb-4">No stories found in this section.</p>
                             <a href="{{ route('posts.create') }}"
                                 class="text-brand-green font-semibold hover:underline">Start writing</a>
                         </div>
