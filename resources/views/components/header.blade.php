@@ -63,6 +63,7 @@
                 <div class="h-6 w-px bg-gray-200"></div> <!-- Vertical Divider -->
 
                 @auth
+                
                     <!-- LOGGED IN: Avatar Dropdown -->
                     <div class="relative" id="user-dropdown-container">
                         <button onclick="toggleDropdown('user-dropdown')"
