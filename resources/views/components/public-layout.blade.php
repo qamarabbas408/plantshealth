@@ -69,7 +69,7 @@
 
     <!-- 3. Include Footer -->
     <x-footer />
-
+    <x-toast />
     <!-- SCROLL TO TOP BUTTON -->
     <button id="scrollToTopBtn" onclick="scrollToTop()"
         class="fixed bottom-8 right-8 z-50 bg-brand-green text-white p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 invisible hover:bg-green-800 hover:-translate-y-1 focus:outline-none"
@@ -107,12 +107,12 @@
     </script>
 
     <!-- Backend Event Tracking -->
-    @if(session('success') && config('services.google.analytics_id'))
+    @if (session('success') && config('services.google.analytics_id'))
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                if(typeof gtag === 'function'){
+                if (typeof gtag === 'function') {
                     gtag('event', 'action_success', {
-                        'message': '{{ session("success") }}'
+                        'message': '{{ session('success') }}'
                     });
                 }
             });

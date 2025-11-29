@@ -61,13 +61,6 @@
                 </div>
             </div>
 
-            <!-- SUCCESS MESSAGE -->
-            @if(session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r shadow-sm" role="alert">
-                    <p class="font-bold">Success</p>
-                    <p>{{ session('success') }}</p>
-                </div>
-            @endif
 
             <!-- 2. DATA TABLES LAYOUT -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
