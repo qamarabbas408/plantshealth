@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\ArticleStatusUpdated;
 
 class AdminController extends Controller
 {
@@ -41,6 +42,11 @@ class AdminController extends Controller
         $post->status = 'published'; // <--- Update Status
         $post->save();
 
+         // 2. TRIGGER NOTIFICATION
+        if ($post->author) {
+            $post->author->notify(new ArticleStatusUpdated($post));
+        }
+
         return redirect()->route('admin.dashboard')->with('success', 'Article approved and published!');
     }
 
@@ -50,7 +56,33 @@ class AdminController extends Controller
         $post->status = 'rejected'; // <--- Update Status
         $post->save();
 
+         // 2. TRIGGER NOTIFICATION
+        if ($post->author) {
+            $post->author->notify(new ArticleStatusUpdated($post));
+        }
+
         return redirect()->route('admin.dashboard')->with('success', 'Article rejected.');
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $post = Post::findOrFail($id);
+
+        // Your existing logic...
+        $post->status = $request->status; // 'published' or 'rejected'
+
+        if ($request->status == 'published') {
+            $post->is_published = true;
+        } else {
+            $post->is_published = false;
+        }
+
+        $post->save();
+
+        // --- TRIGGER NOTIFICATION HERE ---
+        // notify() is a method available on the User model
+        $post->author->notify(new ArticleStatusUpdated($post));
+
+        return back()->with('success', 'Status updated and author notified!');
+    }
 }
-    

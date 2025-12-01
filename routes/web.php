@@ -10,6 +10,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\AdminController; 
+use App\Http\Controllers\NotificationController; 
+
 use App\Models\Post; // Import at top
 use Illuminate\Support\Facades\Route; // Import at top
 
@@ -135,6 +137,13 @@ Route::middleware(['auth'])->group(function () {
 
        // Stats
     Route::get('/me/stats', [StatsController::class, 'index'])->name('stats.index');
+
+      // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
+
 });
 
 // Route::get('/story/{slug}', [PostController::class, 'show'])->name('posts.show');
