@@ -39,7 +39,7 @@ class PostFactory extends Factory
                 '1500937386664-56d1dfef3854', // Field
             ]) . '?q=80&w=800&auto=format&fit=crop',
             
-            'is_published' => true,
+             'status' => 'published', 
         ];
     }
 }

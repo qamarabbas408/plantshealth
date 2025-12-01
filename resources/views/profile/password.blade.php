@@ -41,12 +41,7 @@
                                 <h3 class="text-xl font-bold text-gray-900">Security</h3>
                                 <p class="text-sm text-gray-500 mt-1">Ensure your account is using a long, random password to stay secure.</p>
                             </div>
-                            @if(session('success'))
-                                <span class="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-full">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    {{ session('success') }}
-                                </span>
-                            @endif
+                         
                         </div>
 
                         <form action="{{ route('password.update') }}" method="POST" class="p-8 max-w-2xl">

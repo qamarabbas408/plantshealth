@@ -22,13 +22,20 @@
                     class=" font-medium transition-colors duration-200 {{ request()->routeIs('home') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
                     {{ __('Home') }}
                 </a>
-                <a href="{{ route('pages.about') }}"
-                    class=" font-medium transition-colors duration-200  {{ request()->routeIs('pages.about') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
-                    {{ __('About') }}
-                </a>
+               
                 <a href="{{ route('pages.editorial') }}"
                     class="font-medium transition-colors duration-200  {{ request()->routeIs('pages.editorial') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
                     {{ __('Editorial Board') }}
+                </a>
+
+                 <a href="{{ route('pages.about') }}"
+                    class=" font-medium transition-colors duration-200  {{ request()->routeIs('pages.about') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
+                    {{ __('About') }}
+                </a>
+
+                <a href="{{ route('contact.create') }}"
+                    class=" font-medium transition-colors duration-200  {{ request()->routeIs('contact.create') ? 'text-brand-gold font-bold' : 'text-gray-600 hover:text-brand-green' }}">
+                    {{ __('Contact Us') }}
                 </a>
             </div>
 

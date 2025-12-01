@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+
 class AuthorSeeder extends Seeder
 {
     /**
@@ -13,12 +13,19 @@ class AuthorSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-         User::create([
+        // 1. Create the Fixed Test Author (For you to log in)
+        User::create([
             'name' => 'Dr. John Doe',
             'email' => 'author@plantshealth.com',
-            'password' => Hash::make('password123'), // Encrypted password
-            'role' => 'author', // Explicitly set as author
+            'password' => Hash::make('password123'),
+            'role' => 'author',
+            'bio' => 'Senior Researcher in Agricultural Sciences.',
+            'is_blocked' => false,
+        ]);
+
+        // 2. Create 20 Random Authors
+        User::factory()->count(20)->create([
+            'role' => 'author', // Ensure they are authors
         ]);
     }
 }
