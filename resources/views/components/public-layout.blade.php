@@ -69,7 +69,7 @@
 
     <!-- 3. Include Footer -->
     <x-footer />
-
+    <x-toast />
     <!-- SCROLL TO TOP BUTTON -->
     <button id="scrollToTopBtn" onclick="scrollToTop()"
         class="fixed bottom-8 right-8 z-50 bg-brand-green text-white p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 invisible hover:bg-green-800 hover:-translate-y-1 focus:outline-none"
@@ -79,8 +79,68 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
         </svg>
     </button>
+    <!-- GLOBAL DELETE MODAL -->
+    <div id="delete-modal" class="fixed inset-0 z-[60] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity"
+            onclick="closeDeleteModal()"></div>
 
+        <!-- Modal Content -->
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-100 text-center">
+
+            <!-- Warning Icon -->
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+
+            <!-- Title (Dynamic) -->
+            <h3 id="modal-title" class="text-xl font-bold text-gray-900 mb-2">Delete Item?</h3>
+
+            <!-- Description (Dynamic) -->
+            <p id="modal-desc" class="text-gray-500 mb-8 text-sm leading-relaxed">
+                Are you sure you want to delete this? This action cannot be undone.
+            </p>
+
+            <div class="flex justify-center gap-3">
+                <!-- Cancel Button -->
+                <button type="button" onclick="closeDeleteModal()"
+                    class="px-5 py-2.5 rounded-full text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium transition text-sm">
+                    Cancel
+                </button>
+
+                <!-- Delete Form (Action updated via JS) -->
+                <form id="delete-form" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                        class="px-5 py-2.5 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition text-sm shadow-lg shadow-red-200">
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
     <script>
+        function openDeleteModal(actionUrl, title = 'Delete Item?', desc = 'Are you sure? This cannot be undone.') {
+            // 1. Update the Form Action URL
+            document.getElementById('delete-form').action = actionUrl;
+
+            // 2. Update the Text
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+
+            // 3. Show the Modal
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
         // 1. Get the button
         const scrollBtn = document.getElementById("scrollToTopBtn");
 
@@ -107,20 +167,17 @@
     </script>
 
     <!-- Backend Event Tracking -->
-    @if(session('success') && config('services.google.analytics_id'))
+    @if (session('success') && config('services.google.analytics_id'))
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                if(typeof gtag === 'function'){
+                if (typeof gtag === 'function') {
                     gtag('event', 'action_success', {
-                        'message': '{{ session("success") }}'
+                        'message': '{{ session('success') }}'
                     });
                 }
             });
         </script>
     @endif
-</body>
-
-</html>
 </body>
 
 </html>

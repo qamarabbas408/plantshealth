@@ -1,16 +1,24 @@
 <?php
 
+use App\Http\Controllers\Admin\MessageController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AdminController; // Don't forget to import this at top
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\InteractionController; // Don't forget to import this at top
+use App\Http\Controllers\CommentController; // Don't forget to import this at top
+use App\Http\Controllers\ContactController; // Don't forget to import this at top
+use App\Http\Controllers\InteractionController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
-use App\Http\Controllers\PasswordResetController; // Don't forget to import this at top
-use App\Http\Controllers\PostController; // Don't forget to import this at top
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\StatsController;
-use App\Http\Controllers\AdminController; 
 use App\Models\Post; // Import at top
+use App\Models\User; // Import at top
+use App\Models\ContactMessage; // Import at top
+
+
 use Illuminate\Support\Facades\Route; // Import at top
 
 /*
@@ -24,6 +32,7 @@ use Illuminate\Support\Facades\Route; // Import at top
 |
 */
 
+// PUBLIC ROUTES
 Route::get('/', function () {
     $posts = Post::with(['author', 'tags'])
         ->published() // <--- Use scope
@@ -43,6 +52,19 @@ Route::get('/lang/{locale}', function ($locale) {
 
     return redirect()->back();
 })->name('switchLang');
+
+// Route::get('/story/{slug}', [PostController::class, 'show'])->name('posts.show');
+// The '@' is part of the static URL structure, {username} is the dynamic parameter
+Route::get('/@{username}/{slug}', [PostController::class, 'show'])->name('posts.show');
+
+// Blog Archive Route
+Route::get('/blog', [PostController::class, 'index'])->name('posts.index');
+
+Route::get('/about', [PageController::class, 'about'])->name('pages.about');
+Route::get('/editorial-board', [PageController::class, 'editorial'])->name('pages.editorial');
+
+Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Guest Routes (Only for people NOT logged in)
 Route::middleware('guest')->group(function () {
@@ -68,19 +90,53 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // ADMIN ROUTES GROUP
 // ADMIN ROUTES GROUP
 Route::middleware(['auth'])->prefix('admin')->group(function () {
-    
+
     // Dashboard
-    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard', function () {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        // 1. Fetch Stats (UPDATED for 'status' column)
+        $totalUsers = User::where('role', 'author')->count();
+
+        // logic change: use 'status' instead of 'is_published'
+        $publishedPosts = Post::where('status', 'published')->count();
+        $draftPosts = Post::where('status', 'pending')->count(); // "Pending Review"
+        $totalPosts = Post::count();
+
+        // 2. Fetch Lists
+        // logic change: fetch 'pending' posts for the queue
+        $pendingReviews = Post::where('status', 'pending')->with('tags')->latest()->take(5)->get();
+        $recentUsers = User::latest()->take(5)->get();
+
+        // 3. NEW: Fetch Unread Messages
+        $unreadMessages = ContactMessage::where('is_read', false)->count();
+
+        return view('admin.dashboard', compact(
+            'totalUsers', 'publishedPosts', 'draftPosts', 'totalPosts',
+            'pendingReviews', 'recentUsers', 'unreadMessages'
+        ));
+
+    })->name('admin.dashboard');
 
     // Admin Post Management
     // 1. View the Draft (We use ID here because Slug might change)
     Route::get('/posts/{id}/review', [AdminController::class, 'review'])->name('admin.posts.review');
-    
+
     // 2. Approve (Publish)
     Route::post('/posts/{id}/approve', [AdminController::class, 'approve'])->name('admin.posts.approve');
-    
+
     // 3. Reject (Send back to draft)
     Route::delete('/posts/{id}/reject', [AdminController::class, 'reject'])->name('admin.posts.reject');
+
+    // User Management Routes
+    Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+    Route::patch('/users/{id}/block', [UserController::class, 'toggleBlock'])->name('admin.users.toggle');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.delete');
+
+    Route::get('/messages', [MessageController::class, 'index'])->name('admin.messages.index');
+    Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('admin.messages.delete');
 });
 
 // Author/User Dashboard Route
@@ -133,16 +189,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/post/{id}/like', [InteractionController::class, 'toggleLike'])->name('post.like');
     Route::post('/post/{id}/bookmark', [InteractionController::class, 'toggleBookmark'])->name('post.bookmark');
 
-       // Stats
+    // Stats
     Route::get('/me/stats', [StatsController::class, 'index'])->name('stats.index');
+
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
+
 });
-
-// Route::get('/story/{slug}', [PostController::class, 'show'])->name('posts.show');
-// The '@' is part of the static URL structure, {username} is the dynamic parameter
-Route::get('/@{username}/{slug}', [PostController::class, 'show'])->name('posts.show');
-
-// Blog Archive Route
-Route::get('/blog', [PostController::class, 'index'])->name('posts.index');
-
-Route::get('/about', [PageController::class, 'about'])->name('pages.about');
-Route::get('/editorial-board', [PageController::class, 'editorial'])->name('pages.editorial');

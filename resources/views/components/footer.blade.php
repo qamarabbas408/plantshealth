@@ -12,6 +12,8 @@
                 <li><a href="#" class="text-base text-gray-300 hover:text-white">{{ __('For Authors') }}</a></li>
                 <li><a href="#" class="text-base text-gray-300 hover:text-white">{{ __('For Editors') }}</a></li>
                 <li><a href="#" class="text-base text-gray-300 hover:text-white">{{ __('Open Access Policy') }}</a></li>
+                <li><a href="{{ route('contact.create') }}" class="text-base text-gray-300 hover:text-white">Contact Support</a></li>
+
             </ul>
         </div>
         <div>

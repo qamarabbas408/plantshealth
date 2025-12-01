@@ -38,6 +38,8 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // ADD THIS LINE HERE:
             \App\Http\Middleware\LocalizationMiddleware::class,
+            \App\Http\Middleware\CheckIfBlocked::class, // <--- Add this at the end
+
         ],
 
         'api' => [

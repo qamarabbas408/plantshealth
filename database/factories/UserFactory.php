@@ -29,10 +29,11 @@ class UserFactory extends Factory
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
 
-            // Custom Fields for PlantsHealth
-            'role' => 'author',
-            'bio' => fake()->paragraph(2), // Generate a fake bio
-            'avatar' => null, // Leave empty for now (shows initials)
+            // NEW FIELDS
+            'role' => 'author', // Default to author
+            'bio' => fake()->paragraph(), // Random bio
+            'is_blocked' => false,
+            'avatar' => null, // Default to null (initials will show)
         ];
     }
 

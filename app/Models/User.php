@@ -28,6 +28,7 @@ class User extends Authenticatable
         'affiliation',
         'orcid_id',
         'url_google_scholar',
+        'is_blocked'
 
     ];
 

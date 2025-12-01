@@ -20,18 +20,91 @@
                 </a>
             </div>
 
-            <!-- Success Message -->
-            @if (session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-                    <p>{{ session('success') }}</p>
-                </div>
-            @endif
+
             <!-- GRID START -->
 
             <div class=" mx-auto">
 
                 <!-- 2. LEFT COLUMN: MY STORIES -->
                 <div class="space-y-6">
+                    <!-- NOTIFICATIONS SECTION -->
+                    <!-- 1. NOTIFICATIONS SECTION (Mini View) -->
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                                    </path>
+                                </svg>
+                                Latest Notifications
+
+                                <!-- Unread Counter Badge -->
+                                <!-- We use an ID to target this with JS -->
+                                <span id="notif-count-badge"
+                                    class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full {{ Auth::user()->unreadNotifications()->count() > 0 ? '' : 'hidden' }}">
+                                    {{ Auth::user()->unreadNotifications()->count() }} New
+                                </span>
+                            </h2>
+
+                            <!-- Link to Full Page -->
+                            <a href="{{ route('notifications.index') }}"
+                                class="text-sm font-semibold text-brand-green hover:underline">
+                                View All History &rarr;
+                            </a>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 divide-y">
+                            <!-- Fetch only the latest 3 notifications -->
+                            @forelse(Auth::user()->notifications()->take(3)->get() as $notification)
+                                <div
+                                    class="p-4 flex justify-between items-center {{ $notification->read_at ? 'bg-gray-50 opacity-75' : 'bg-white border-l-4 border-brand-green' }}">
+
+                                    <div class="flex items-center gap-3">
+                                        <!-- Icon based on Status -->
+                                        @if (isset($notification->data['status']) && $notification->data['status'] === 'published')
+                                            <span class="text-green-500 bg-green-100 p-2 rounded-full flex-shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </span>
+                                        @else
+                                            <span class="text-red-500 bg-red-100 p-2 rounded-full flex-shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </span>
+                                        @endif
+
+                                        <div>
+                                            <p class="text-sm text-gray-800 font-medium line-clamp-1">
+                                                {{ $notification->data['message'] ?? 'Notification' }}
+                                            </p>
+                                            <span class="text-xs text-gray-500">
+                                                {{ $notification->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    @if (!$notification->read_at)
+                                        <a href="{{ route('notifications.read', $notification->id) }}"
+                                            class="text-xs text-blue-600 hover:underline whitespace-nowrap ml-2">
+                                            Mark read
+                                        </a>
+                                    @endif
+                                </div>
+                            @empty
+                                <div class="p-6 text-center text-gray-400 text-sm">
+                                    You have no notifications yet.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
 
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -136,7 +209,11 @@
 
                                             <!-- Delete Trigger -->
                                             <button type="button"
-                                                onclick="openDeleteModal('{{ route('posts.destroy', $post->id) }}')"
+                                                onclick="openDeleteModal(
+                                                        '{{ route('posts.destroy', $post->id) }}', 
+                                                        'Delete Story?', 
+                                                        'Are you sure you want to delete this? All comments and data associated with this story will be permanently removed.'
+                                                    )"
                                                 class="text-gray-400 hover:text-red-600 transition p-1"
                                                 title="Delete Story">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -147,6 +224,9 @@
                                                     </path>
                                                 </svg>
                                             </button>
+
+
+
                                             @if ($post->status !== 'published' && $post->status != 'pending')
                                                 <a href="{{ route('posts.edit', $post->id) }}"
                                                     class="text-gray-400 hover:text-brand-green transition p-1"
@@ -207,52 +287,33 @@
             </div>
         </div>
     </div>
-    <!-- DELETE CONFIRMATION MODAL -->
-    <div id="delete-modal" class="fixed inset-0 z-[60] hidden">
-
-        <!-- Backdrop (Dark Overlay) -->
-        <div class="absolute inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity"
-            onclick="closeDeleteModal()"></div>
-
-        <!-- Modal Content -->
-        <div
-            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-100 text-center">
-
-            <!-- Warning Icon -->
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Delete Story?</h3>
-
-            <p class="text-gray-500 mb-8 text-sm leading-relaxed">
-                Are you sure you want to delete this? All comments and data associated with this story will be
-                permanently removed.
-            </p>
-
-            <div class="flex justify-center gap-3">
-                <!-- Cancel Button -->
-                <button type="button" onclick="closeDeleteModal()"
-                    class="px-5 py-2.5 rounded-full text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium transition text-sm">
-                    Cancel
-                </button>
-
-                <!-- Delete Form (Action updated via JS) -->
-                <form id="delete-form" method="POST" action="">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                        class="px-5 py-2.5 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition text-sm shadow-lg shadow-red-200">
-                        Yes, Delete
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+  
 </x-public-layout>
+<script>
+    function updateNotificationCount() {
+        fetch("{{ route('notifications.count') }}")
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notif-count-badge');
+                console.log("Data =====", data)
+                if (data.count > 0) {
+                    // Update number and show badge
+                    badge.innerText = data.count + ' New';
+                    badge.classList.remove('hidden');
+                } else {
+                    // Hide badge if count is 0
+                    badge.classList.add('hidden');
+                }
+            })
+            .catch(error => console.error('Error fetching notifications:', error));
+    }
+
+    // "pageshow" fires when the page is loaded, even from the Back/Forward cache
+    window.addEventListener('pageshow', (event) => {
+        console.log("Event Fired")
+        updateNotificationCount();
+    });
+</script>
 <script>
     function previewAvatar(input) {
         if (input.files && input.files[0]) {
@@ -275,21 +336,6 @@
         }
 
 
-    }
-
-    const deleteModal = document.getElementById('delete-modal');
-    const deleteForm = document.getElementById('delete-form');
-
-    function openDeleteModal(url) {
-        // 1. Update the form action with the specific post URL
-        deleteForm.action = url;
-
-        // 2. Show the modal
-        deleteModal.classList.remove('hidden');
-    }
-
-    function closeDeleteModal() {
-        deleteModal.classList.add('hidden');
     }
 
     // Optional: Close on Escape key
