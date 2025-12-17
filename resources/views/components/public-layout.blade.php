@@ -12,6 +12,10 @@
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 
+    <!-- NProgress (The Loader Bar) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
+
     <!-- Tailwind (CDN for Prototyping) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -53,6 +57,25 @@
         .font-urdu {
             font-family: 'Noto Nastaliq Urdu', serif;
             line-height: 2;
+        }
+
+
+        /* NProgress Color Customization */
+        #nprogress .bar {
+            background: #d97706 !important;
+            /* Brand Gold */
+            height: 3px !important;
+            /* Make it slightly thicker */
+        }
+
+        /* The glowing spinner (optional, usually hidden for top bars) */
+        #nprogress .peg {
+            box-shadow: 0 0 10px #d97706, 0 0 5px #d97706;
+        }
+
+        /* Hide the spinner circle on the right if you only want the bar */
+        #nprogress .spinner {
+            display: none;
         }
     </style>
 </head>
@@ -166,6 +189,42 @@
         }
     </script>
 
+    <script>
+        // 1. Configure NProgress
+        NProgress.configure({
+            showSpinner: false,
+            speed: 500
+        });
+
+        // 2. Trigger on Page Load (Finish the animation)
+        // This runs when the new page is fully ready
+        window.addEventListener('load', function() {
+            NProgress.done();
+        });
+
+        // 3. Trigger on Link Click (Start the animation)
+        // This gives the illusion of speed before the browser actually switches pages
+        document.addEventListener('click', function(e) {
+            var target = e.target.closest('a');
+
+            // If clicked on a valid link
+            if (target && target.getAttribute('href') &&
+                !target.getAttribute('href').startsWith('#') &&
+                !target.getAttribute('target')) {
+
+                NProgress.start();
+            }
+        });
+
+        // 4. Handle Back/Forward Browser Buttons
+        // This ensures the bar stops if the user hits the back button
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                NProgress.done();
+            }
+        });
+    </script>
+
     <!-- Backend Event Tracking -->
     @if (session('success') && config('services.google.analytics_id'))
         <script>
@@ -178,6 +237,8 @@
             });
         </script>
     @endif
+
+
 </body>
 
 </html>
